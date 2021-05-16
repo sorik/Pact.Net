@@ -40,6 +40,13 @@ containers:
       - .batect/MembershipMock/data:/usr/share/nginx/html:ro
     command: nginx-debug -g 'daemon off;'
 
+  pact-env:
+    build_directory: .batect/DotnetBuild
+    volumes:
+      - local: .
+        container: /code
+    working_directory: /code
+
 
 tasks:
   build:
@@ -54,3 +61,15 @@ tasks:
       - build
     run:
       container: run-app-env
+
+  pactTests:
+    description: Run the PACT tests.
+    run:
+      container: pact-env
+      command: dotnet test "tests/Consumer.PactTests"
+  
+  shell:
+    description: Run the PACT tests.
+    run:
+      container: pact-env
+      command: bash 
