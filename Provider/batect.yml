@@ -1,0 +1,75 @@
+project_name: provider
+
+containers:
+  sdk-env:
+    build_directory: .batect/DotnetBuild
+    environment:
+      AWS__ServiceURL: http://localhost:4566
+      AWS__Region: ap-south-east-2
+    volumes:
+      - local: .
+        container: /code
+        options: cached
+      - type: cache
+        name: nuget-cache
+        container: /home/container-user/.nuget
+      - type: cache
+        name: src-obj
+        container: /code/src/Provider/obj
+    working_directory: /code
+
+  localstack:
+    image: localstack/localstack
+    environment:
+      DEFAULT_RETION: ap-southeast-2
+      TEST_AWS_ACCOUNT_ID: "000000000000"
+      SERVICES: dynamodb
+      AWS_ACCESS_KEY_ID: fake
+      AWS_SECRET_ACCESS_KEY: fake
+      AWS_DEFAULT_REGION: ap-southeast-2
+      HOSTNAME_EXTERNAL: localstack
+      LOCALSTACK_HOSTNAME: localstack
+    volumes:
+      - local: .batect/localstack/localstack-bootstrap.sh
+        container: /docker-entrypoint-initaws.d/localstack-bootstrap.sh
+      - local: .batect/localstack/healthcheck.sh
+        container: /app/healthcheck.sh
+      - local: .
+        container: /code
+    ports:
+      - "4566:4566"
+    health_check:
+      command: /app/healthcheck.sh
+      interval: 5s
+      retries: 5
+      start_period: 15s
+      timeout: 30s
+
+  run-app-env:
+    build_directory: .batect/RunApp
+    ports:
+      - "5001:5001"
+    environment:
+      AWS__ServiceURL: http://localstack:4566
+      AWS__Region: ap-southeast-2
+      AWS_ACCESS_KEY_ID: fake
+      AWS_SECRET_ACCESS_KEY: fake
+      AWS_DEFAULT_REGION: ap-southeast-2
+      ASPNETCORE_URLS: HTTP://*:5001
+      ASPNETCORE_ENVIRONMENT: Development
+    dependencies:
+      - localstack
+
+tasks:
+  build:
+    description: Build the application.
+    run:
+      container: sdk-env
+      command: dotnet build src/Provider -o .batect/RunApp/app
+  
+  runApp:
+    description: Run the application.
+    prerequisites:
+      - build
+    run:
+      container: run-app-env
