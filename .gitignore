@@ -1,0 +1,11 @@
+.DS_Store
+.idea/
+.vscode/
+
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+
+**/RunApp/app
+**/.batect/caches/*
+
