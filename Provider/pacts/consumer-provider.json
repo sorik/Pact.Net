@@ -1,0 +1,28 @@
+{
+  "consumer": {
+    "name": "Consumer"
+  },
+  "provider": {
+    "name": "Provider"
+  },
+  "interactions": [
+    {
+      "description": "A GET request with userId1",
+      "providerState": "The userId1 is not a member",
+      "request": {
+        "method": "get",
+        "path": "/users/userId1/memberships"
+      },
+      "response": {
+        "status": 404,
+        "headers": {
+        }
+      }
+    }
+  ],
+  "metadata": {
+    "pactSpecification": {
+      "version": "2.0.0"
+    }
+  }
+}
