@@ -26,8 +26,17 @@ namespace Provider.PactTests.Middleware
                 {
                     "The userId1 is not a member",
                     RemoveUsers
+                },
+                {
+                    "The userId2 is a member",
+                    AddUserId2WithFellowMembership
                 }
             };
+        }
+
+        private void AddUserId2WithFellowMembership()
+        {
+            _repository.AddUser("userId2", "fellow");
         }
         
         private void RemoveUsers()
