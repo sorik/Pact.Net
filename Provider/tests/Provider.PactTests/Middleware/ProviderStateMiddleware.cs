@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
+using Provider.PactTests.Repositories;
 
 namespace Provider.PactTests.Middleware
 {
@@ -14,11 +15,24 @@ namespace Provider.PactTests.Middleware
         private readonly RequestDelegate _next;
         private const string ConsumerName = "Consumer";
         private readonly IDictionary<string, Action> _providerState;
+        private readonly IMembershipRepository _repository;
 
-        public ProviderStateMiddleware(RequestDelegate next)
+        public ProviderStateMiddleware(RequestDelegate next, IMembershipRepository repository)
         {
             _next = next;
-            _providerState = new Dictionary<string, Action>();
+            _repository = repository;
+            _providerState = new Dictionary<string, Action>
+            {
+                {
+                    "The userId2 is not a member",
+                    RemoveUsers
+                }
+            };
+        }
+        
+        private void RemoveUsers()
+        {
+            _repository.DeleteAllUsers();
         }
 
         public async Task Invoke(HttpContext context)
