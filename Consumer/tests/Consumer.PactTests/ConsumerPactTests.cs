@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using Consumer;
@@ -46,6 +47,38 @@ namespace tests
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
             var content = await response.Content.ReadAsStringAsync();
             Assert.Equal("{\"member\":false}", content);
+        }
+
+        [Fact]
+        public async void GivenUserIsAFellowMember_WhenGetMembershipInvoked_ThenReturnsTrue()
+        {
+            _mockProviderService.Given("The userId2 is a member")
+                .UponReceiving("A GET request with userId2")
+                .With(new ProviderServiceRequest
+                {
+                    Method = HttpVerb.Get,
+                    Path = "/users/userId2/memberships"
+                })
+                .WillRespondWith(new ProviderServiceResponse
+                {
+                    Status = 200,
+                    Headers = new Dictionary<string, object>
+                    {
+                        { "Content-Type", "application/json; charset=utf-8" }
+                    },
+                    Body = new
+                    {
+                        type = "fellow"
+                    }
+                });
+
+            var request = new HttpRequestMessage(new HttpMethod("GET"), "/users/userId2/memberships/fellow");
+
+            var response = await Client.SendAsync(request);
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            var content = await response.Content.ReadAsStringAsync();
+            Assert.Equal("{\"member\":true}", content);
         }
     }
 }
