@@ -60,6 +60,39 @@ containers:
     dependencies:
       - localstack
 
+  run-standalone-app:
+      build_directory: .batect/RunApp
+      ports:
+        - "5001:5001"
+      environment:
+        AWS__ServiceURL: http://localstack:4566
+        AWS__Region: ap-southeast-2
+        AWS_ACCESS_KEY_ID: fake
+        AWS_SECRET_ACCESS_KEY: fake
+        AWS_DEFAULT_REGION: ap-southeast-2
+        ASPNETCORE_URLS: HTTP://*:5001
+        ASPNETCORE_ENVIRONMENT: Development
+  
+  pact-env:
+    build_directory: .batect/DotnetBuild
+    environment:
+        AWS__ServiceURL: http://localstack:4566
+        AWS__Region: ap-southeast-2
+        AWS_ACCESS_KEY_ID: fake
+        AWS_SECRET_ACCESS_KEY: fake
+        AWS_DEFAULT_REGION: ap-southeast-2
+    volumes:
+      - local: .
+        container: /code
+        options: cached
+      - type: cache
+        name: nuget-cache
+        container: /home/container-user/.nuget
+    working_directory: /code
+    dependencies:
+      - run-standalone-app
+      - localstack
+
 tasks:
   build:
     description: Build the application.
@@ -73,3 +106,17 @@ tasks:
       - build
     run:
       container: run-app-env
+
+  verifyPact:
+    description: Verify PACT
+    prerequisites:
+      - build
+    run:
+      container: pact-env
+      command: dotnet test "tests/Provider.PactTests"
+
+  shell:
+    description: Shell in pact-env
+    run:
+      container: pact-env
+      command: bash

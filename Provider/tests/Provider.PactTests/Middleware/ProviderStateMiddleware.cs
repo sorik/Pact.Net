@@ -24,7 +24,7 @@ namespace Provider.PactTests.Middleware
             _providerState = new Dictionary<string, Action>
             {
                 {
-                    "The userId2 is not a member",
+                    "The userId1 is not a member",
                     RemoveUsers
                 }
             };
